@@ -1,0 +1,13 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+.idea
+*.py[cod]
+
+
+*.txt
+*.h5
+*.jpg
+*.json
+*.xml
+*.ckpt
+*.md
