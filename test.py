@@ -30,7 +30,7 @@ def image_eval():
     #INFERENCE
     center_pred, scale_pred, offset_pred = csp_model(image, training=False)
     boxes,scores = inference(center_prob=center_pred, height=scale_pred, offset=offset_pred, img_width=IMG_WIDTH,
-                             img_height=IMG_HEIGHT, ar=0.41, score_thresh=0.1, nms_thresh=NMS_THRESHOLD, downsample=4)
+                             img_height=IMG_HEIGHT, ar=0.41, score_thresh=0.55, nms_thresh=NMS_THRESHOLD, downsample=4)
     image_vis = cv2.imread(filename=TEST_IMAGE)
     image_vis = cv2.resize(image_vis, dsize=(IMG_WIDTH, IMG_HEIGHT))
     image_with_boxes = visualize_bbox(image=image_vis, bb=boxes, scores=scores, color=(0,255,0))

@@ -1,6 +1,6 @@
 csp_cfg = {
     ## Training Settings
-    'BATCH_SIZE' :  4,
+    'BATCH_SIZE' :  1,
     'EPOCH'      :  20,
     'IMG_WIDTH'  :  1280,
     'IMG_HEIGHT' :  640,
@@ -12,12 +12,12 @@ csp_cfg = {
     'NUM_CLASS'  :  2,
 
     ## Test Settings
-    "TEST_MODEL_NAME" : "Model_Test_3",
-    "TEST_IMAGE"      : "D:\\PersonalResearch\\Projects\\Datasets\\VOC2012\\Img\\val\\2008_002835.jpg",
+    "TEST_MODEL_NAME" : "Name of the Test Model",
+    "TEST_IMAGE"      : "Name of the Test Image",
     "NMS_THRESHOLD"   : 0.5,
 
     ## Model Save and Checkpoint Settings
-    'SAVE_DIR'   : "D:\\PersonalResearch\\Projects\\Models\\SSD",
+    'SAVE_DIR'   : "Save Directory of the Model",
     'MODEL_NAME' : 'Name of the Model',
     'CKPT_DIR'   : 'Name of the Checkpoint Directory',
 
