@@ -30,7 +30,6 @@ def csp_train(root_dir_train,root_dir_valid,_root_dir_train_jsons,root_dir_valid
     MODEL_NAME    = csp_cfg['MODEL_NAME']
     CKPT_DIR      = csp_cfg['CKPT_DIR']
 
-
     train_generator = data_gen(Img_Path=root_dir_train,Label_Path=root_dir_train_jsons,
                                Img_Width=IMG_WIDTH,Img_Height=IMG_HEIGHT,Batch_Size=BATCH_SIZE,
                                Num_Classes=NUM_CLASS,Subset=SUBSET,Augmentation=AUGMENTATION,Shuffle=SHUFFLE)
@@ -62,6 +61,8 @@ def csp_train(root_dir_train,root_dir_valid,_root_dir_train_jsons,root_dir_valid
     patience = 30
     wait = 0
 
+    if os.path.exists(SAVE_DIR) != True:
+        os.makedirs(SAVE_DIR)
     checkpoint=tf.train.Checkpoint(optimizer=optimizer,model=csp_model)
     ckpt_manager=tf.train.CheckpointManager(checkpoint=checkpoint,directory=os.path.join(SAVE_DIR,CKPT_DIR),max_to_keep=5)
     if ckpt_manager.latest_checkpoint:
@@ -155,6 +156,7 @@ if __name__ == '__main__':
     if gpus:
         for gpu in gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
+
 
     root_dir_train       = csp_cfg['TRAIN_IMG']
     root_dir_valid       = csp_cfg['VALID_IMG']
