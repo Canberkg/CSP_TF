@@ -17,13 +17,15 @@ def csp_train(root_dir_train,root_dir_valid,_root_dir_train_jsons,root_dir_valid
     EPOCH         = csp_cfg['EPOCH']
     IMG_WIDTH     = csp_cfg['IMG_WIDTH']
     IMG_HEIGHT    = csp_cfg['IMG_HEIGHT']
+    SUBSET        = csp_cfg["SUBSET"]
+    AUGMENTATION  = csp_cfg['AUGMENTATION']
+    SHUFFLE       = csp_cfg['SHUFFLE']
     NUM_CLASS     = csp_cfg['NUM_CLASS']
     LR            = csp_cfg['LR']
     LR_SCHEDULER  = csp_cfg['LR_SCHEDULER']
     DECAY_STEPS   = csp_cfg['DECAY_STEPS']
     DECAY_RATE    = csp_cfg['DECAY_RATE']
     OPTIMIZER     = csp_cfg['OPTIMIZER']
-    SHUFFLE       = csp_cfg['SHUFFLE']
     SAVE_DIR      = csp_cfg['SAVE_DIR']
     MODEL_NAME    = csp_cfg['MODEL_NAME']
     CKPT_DIR      = csp_cfg['CKPT_DIR']
@@ -31,10 +33,10 @@ def csp_train(root_dir_train,root_dir_valid,_root_dir_train_jsons,root_dir_valid
 
     train_generator = data_gen(Img_Path=root_dir_train,Label_Path=root_dir_train_jsons,
                                Img_Width=IMG_WIDTH,Img_Height=IMG_HEIGHT,Batch_Size=BATCH_SIZE,
-                               Num_Classes=NUM_CLASS,Augmentation=None,Shuffle=SHUFFLE)
+                               Num_Classes=NUM_CLASS,Subset=SUBSET,Augmentation=AUGMENTATION,Shuffle=SHUFFLE)
     valid_generator = data_gen(Img_Path=root_dir_valid, Label_Path=root_dir_valid_jsons,
                                Img_Width=IMG_WIDTH, Img_Height=IMG_HEIGHT, Batch_Size=BATCH_SIZE,
-                               Num_Classes=NUM_CLASS, Augmentation=None,Shuffle=False)
+                               Num_Classes=NUM_CLASS, Subset=SUBSET,Augmentation=None,Shuffle=False)
 
     csp_model = csp(inp=tf.keras.Input(shape=(IMG_HEIGHT,IMG_WIDTH,3),batch_size=BATCH_SIZE),num_class=NUM_CLASS,model_name="resnet50")
 

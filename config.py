@@ -12,12 +12,12 @@ csp_cfg = {
     'NUM_CLASS'  :  2,
 
     ## Test Settings
-    "TEST_MODEL_NAME" : "Name of the Test Model",
-    "TEST_IMAGE"      : "Name of the Test Image",
+    "TEST_MODEL_NAME" : "Name of the Model to be Tested",
+    "TEST_IMAGE"      : "Path of the Test Image",
     "NMS_THRESHOLD"   : 0.5,
 
     ## Model Save and Checkpoint Settings
-    'SAVE_DIR'   : "Save Directory of the Model",
+    'SAVE_DIR'   : "Saved_Models",
     'MODEL_NAME' : 'Name of the Model',
     'CKPT_DIR'   : 'Name of the Checkpoint Directory',
 
@@ -26,13 +26,14 @@ csp_cfg = {
     'VALID_IMG'   : "Dataset/images/valid",
     "TRAIN_LABEL" : "Dataset/annotations_json/train",
     "VALID_LABEL" : "Dataset/annotations_json/valid",
+    "SUBSET"  : "reasonable", ## (Reasonable : "reasonable", Small : "small", Highly occluded : "highly_occluded", No Subset : "None")
+    "AUGMENTATION" : True,
     'SHUFFLE' : True,
 
     ## Dataset Prepearation
-    'IMG_PATH'       : "Directory Path of Images",
-    'XML_ANNOTATION' : "Directory Path of XML Annotations",
-    'JSON_ANNOTATION': "Directory Path of JSON Annotations",
-    'TRAIN_SPLIT'    : "Directory Path of training set txt file which contains the name of the all the image names belong to training",
-    'VALID_SPLIT'    : "Directory Path of training set txt file which contains the name of the all the image names belong to validation",
+    'IMG_PATH'       : "Path of leftImg8bit directory",
+    'JSON_ANNOTATION': "Path of gtBboxCityPersons",
+    'SET_IMG_PATH'  : "Dataset/images/train",
+    'SET_JSON_PATH' : "Dataset/images/valid"
 
 }
