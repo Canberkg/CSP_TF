@@ -14,9 +14,10 @@ This repository contains the re-implementation of CSP [1] built with Tensorflow 
 
 CityPersons dataset is used in this repo which is a subset of Cityscapes. The following steps should be followed carefully to prepare the dataset:
 1. Download the cityscapes dataset and citypersons annotations (leftImg8bit_trainvaltest.zip and gtBbox_cityPersons_trainval.zip ) from  : https://www.cityscapes-dataset.com/downloads/ 
-2. Unzip these files. Set IMAGE_PATH and JSON_ANNOTATION parameters in config file based on the path of unzipped leftImg8bit and gtBboxCityPersons respectively.
-3. CityPersons dataset contains couple of subsets such as reasonable,highly_occluded etc. Set the SUBSET parameter in config file to either reasonable, highly_occluded, small, or None. 
-4. Run data_preperation.py to prepare data based on the selected subset and also it will get rid of images without annotations
+2. Unzip these files. Set IMAGE_PATH and JSON_ANNOTATION parameters in config.py based on the path of unzipped leftImg8bit and gtBboxCityPersons respectively.
+3. Set MAIN_DIR in config.py to where the project is located.
+4. CityPersons dataset contains couple of subsets such as reasonable,highly_occluded etc. Set the SUBSET parameter in config.py to either reasonable, highly_occluded, small, or None. 
+5. Run data_preperation.py to prepare data based on the selected subset and also it will get rid of images without annotations
 
 ## Training
 

@@ -31,9 +31,10 @@ csp_cfg = {
     'SHUFFLE' : True,
 
     ## Dataset Prepearation
+    'MAIN_DIR'       : "Path of the Main Directory (Where this project is located (ex. D:\......\CSP ))",
     'IMG_PATH'       : "Path of leftImg8bit directory",
     'JSON_ANNOTATION': "Path of gtBboxCityPersons",
-    'SET_IMG_PATH'  : "Dataset/images/train",
-    'SET_JSON_PATH' : "Dataset/images/valid"
+    'SET_IMG_PATH'  : "Dataset/images",
+    'SET_JSON_PATH' : "Dataset/annotations_json"
 
 }
