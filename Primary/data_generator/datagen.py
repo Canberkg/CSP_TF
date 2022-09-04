@@ -5,21 +5,20 @@ import cv2
 import numpy as np
 import tensorflow as tf
 
-from Primary.data_generator.class_dict import class_dict
+
+from Primary.data_generator.data_augmentation import image_augmentation
 from Primary.data_generator.cityperson import CityPersonDataset
 
-def resize_boxes(image_w,image_h,resized_w,resized_h,x_min,y_min,w_box,h_box):
+def resize_boxes(resized_w,resized_h,gt_boxes):
 
-    ratio_h=resized_h/image_h
-    ratio_w=resized_w/image_w
-    x_min=x_min*ratio_w
-    y_min=y_min*ratio_h
-    w_box=w_box*ratio_w
-    h_box=h_box*ratio_h
+    ratio_h = resized_h/1024
+    ratio_w = resized_w/2048
+    gt_boxes[:, 0:4:2] *= ratio_w
+    gt_boxes[:, 1:4:2] *= ratio_h
 
-    return x_min,y_min,w_box,h_box
+    return gt_boxes
 
-def create_visible_bbox(data,resized_w,resized_h):
+def create_visible_bbox(data,subset="default"):
     visbboxes=[]
 
     for i in range(data.get_num_objects()):
@@ -34,23 +33,33 @@ def create_visible_bbox(data,resized_w,resized_h):
         w_visible = data.get_visibile_box(i)[2]
         h_visible = data.get_visibile_box(i)[3]
 
-        occlusion_rate = (w_visible * h_visible) / (w * h)
+        occlusion_rate = 1-((w_visible * h_visible) / (w * h))
 
-        x_min,y_min,w,h=resize_boxes(data.get_width(),data.get_height(),resized_w,resized_h,x_min,y_min,w,h)
+        if subset == "reasonable":
+            if class_label == "pedestrian" and h_unresized >= 50 and occlusion_rate <= 0.35:
+                x_max = x_min + w
+                y_max = y_min + h
+                visbboxes.append([x_min,y_min,x_max,y_max])
+        elif subset == "small":
+            if class_label == "pedestrian" and h_unresized >= 50 and h_unresized <= 50 and occlusion_rate <= 0.35:
+                x_max = x_min + w
+                y_max = y_min + h
+                visbboxes.append([x_min, y_min, x_max, y_max])
+        elif subset == "highly_occluded":
+            if class_label == "pedestrian" and h_unresized >= 50 and occlusion_rate >= 0.35 and occlusion_rate <= 0.8:
+                x_max = x_min + w
+                y_max = y_min + h
+                visbboxes.append([x_min, y_min, x_max, y_max])
+        elif subset == "default":
+            if class_label == "pedestrian":
+                x_max = x_min + w
+                y_max = y_min + h
+                visbboxes.append([x_min, y_min, x_max, y_max])
 
-
-        if class_label == "pedestrian" and h_unresized >= 50 and occlusion_rate >= 0.65:
-            x_max = x_min + w
-            y_max = y_min + h
-
-            x_min = max(0.0,x_min)
-            y_min = max(0.0, y_min)
-            x_max = min(resized_w, x_max)
-            y_max = min(resized_h, y_max)
-
-            visbboxes.append([x_min,y_min,x_max,y_max])
-
-    return visbboxes
+    if len(visbboxes) == 0:
+        return visbboxes
+    else:
+        return np.stack(visbboxes,axis=0)
 
 class data_gen(tf.keras.Sequential):
     """Data Generator Class
@@ -62,11 +71,12 @@ class data_gen(tf.keras.Sequential):
         Img_Height    : Height of input accepted by the network (Int)
         Batch_Size    : Length of a  Batch
         Num_Classes   : Number of Classes
-        Shuffle       : Whether Shuffle the data or not (boolean)
-        Augmentation  : Augmentation Techniques (Horizontal/Vertical Flip : "FLIP" )
+        Subset        : Subset of CityPersons (Reasonable : "reasonable", Small : "small", Highly occluded : "highly_occluded", No Subset : "None")
+        Shuffle       : Whether Shuffle the data or not (boolean) , False by default
+        Augmentation  : Perform Augmentation or Not (boolean), False by default
 
     """
-    def __init__(self,Img_Path,Label_Path,Img_Width,Img_Height,Batch_Size,Num_Classes,Augmentation=None,Shuffle=False):
+    def __init__(self,Img_Path,Label_Path,Img_Width,Img_Height,Batch_Size,Num_Classes,Subset="None",Augmentation=False,Shuffle=False):
         super(data_gen, self).__init__()
         self.Img_Path = Img_Path
         self.Label_Path = Label_Path
@@ -78,6 +88,7 @@ class data_gen(tf.keras.Sequential):
         self.Num_Classes = Num_Classes
         self.indices = range(0, len(self.Img_list) - (len(self.Img_list) % self.Batch_Size))
         self.index = np.arange(0, len(self.Img_list) - (len(self.Img_list) % self.Batch_Size))
+        self.subset=Subset
         self.Augmentation = Augmentation
         self.shuffle = Shuffle
         self.radius=2
@@ -169,33 +180,68 @@ class data_gen(tf.keras.Sequential):
         Scale = []
         Offset = []
 
-        batch_of_images = [self.Img_list[i] for i in batch]
+        if self.Augmentation:
+            augment = image_augmentation(flip='horizontal')
+            batch_of_images = [self.Img_list[i] for i in batch]
 
-        for k in range(len(batch)):
-            label_arr = batch_of_images[k].split('_')
-            label_arr[-1] = 'gtBboxCityPersons.json'
-            label = '_'.join(label_arr)
-            if label in self.Label_list:
-                Img = cv2.imread(filename=os.path.join(self.Img_Path, batch_of_images[k]))
-                Img = cv2.resize(Img, (self.Img_Width, self.Img_Height), interpolation=cv2.INTER_NEAREST)
-                Img_arr = np.asarray(Img, dtype=np.float32)
-                Img_arr = tf.keras.applications.resnet50.preprocess_input(Img_arr)
-                Images.append(Img_arr)
+            for k in range(len(batch)):
+                label_arr = batch_of_images[k].split('_')
+                label_arr[-1] = 'gtBboxCityPersons.json'
+                label = '_'.join(label_arr)
+                if label in self.Label_list:
+                    Img = cv2.imread(filename=os.path.join(self.Img_Path, batch_of_images[k]))
+                    Img = cv2.cvtColor(Img,cv2.COLOR_BGR2RGB)
+                    Img = augment.aug_brightness(Img,0.5,2,prob=0.5)
+                    Img_arr = np.asarray(Img, dtype=np.float32)
 
-                label_ind = self.Label_list.index(label)
-                f = open(os.path.join(self.Label_Path, self.Label_list[label_ind]))
-                data = json.load(f)
-                data = CityPersonDataset(data=data)
-                gt_boxes = create_visible_bbox(data=data, resized_w=self.Img_Width, resized_h=self.Img_Height)
-                center_map, scale_map, offset_map = self.get_label(gt_boxes=gt_boxes, img_shape=Img_arr.shape)
-                Center.append(center_map)
-                Scale.append(scale_map)
-                Offset.append(offset_map)
-            else:
-                raise Exception('Image and Label does not belong to the same object!')
+                    label_ind = self.Label_list.index(label)
+                    f = open(os.path.join(self.Label_Path, self.Label_list[label_ind]))
+                    data = json.load(f)
+                    data = CityPersonDataset(data=data)
+                    gt_boxes = create_visible_bbox(data=data,subset=self.subset)
 
 
+                    cropped_image,gt_boxes = augment.aug_random_crop(img=Img_arr,labels=gt_boxes,crop_h=self.Img_Height,crop_w=self.Img_Width)
+                    cropped_image,gt_boxes = augment.aug_flip(img=cropped_image,labels=gt_boxes,prob=0.5)
+                    Img_arr = tf.keras.applications.resnet50.preprocess_input(cropped_image)
+                    Images.append(Img_arr)
 
+
+                    center_map, scale_map, offset_map = self.get_label(gt_boxes=gt_boxes, img_shape=Img_arr.shape)
+                    Center.append(center_map)
+                    Scale.append(scale_map)
+                    Offset.append(offset_map)
+                else:
+                    raise Exception('Image and Label does not belong to the same object!')
+        else:
+
+            batch_of_images = [self.Img_list[i] for i in batch]
+            for k in range(len(batch)):
+                label_arr = batch_of_images[k].split('_')
+                label_arr[-1] = 'gtBboxCityPersons.json'
+                label = '_'.join(label_arr)
+                if label in self.Label_list:
+                    Img = cv2.imread(filename=os.path.join(self.Img_Path, batch_of_images[k]))
+                    Img = cv2.resize(Img, (self.Img_Width, self.Img_Height), interpolation=cv2.INTER_NEAREST)
+                    Img = cv2.cvtColor(Img,cv2.COLOR_BGR2RGB)
+                    Img_arr = np.asarray(Img, dtype=np.float32)
+                    Img_arr = tf.keras.applications.resnet50.preprocess_input(Img_arr)
+                    Images.append(Img_arr)
+
+                    label_ind = self.Label_list.index(label)
+                    f = open(os.path.join(self.Label_Path, self.Label_list[label_ind]))
+                    data = json.load(f)
+                    data = CityPersonDataset(data=data)
+                    gt_boxes = create_visible_bbox(data=data,subset=self.subset)
+                    gt_boxes = np.asarray(gt_boxes, dtype=np.float32)
+                    gt_boxes = resize_boxes(resized_w=self.Img_Width,resized_h=self.Img_Height,gt_boxes=gt_boxes)
+
+                    center_map, scale_map, offset_map = self.get_label(gt_boxes=gt_boxes, img_shape=Img_arr.shape)
+                    Center.append(center_map)
+                    Scale.append(scale_map)
+                    Offset.append(offset_map)
+                else:
+                    raise Exception('Image and Label does not belong to the same object!')
 
 
         return tf.stack(Images, axis=0),tf.cast(tf.stack(Center, axis=0),dtype=tf.float32),tf.cast(tf.stack(Scale, axis=0),dtype=tf.float32),tf.cast(tf.stack(Offset, axis=0),dtype=tf.float32)

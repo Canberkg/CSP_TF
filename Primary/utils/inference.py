@@ -1,5 +1,5 @@
 import os
-import cv2
+from cv2 import cv2
 import numpy as np
 import tensorflow as tf
 
@@ -24,7 +24,7 @@ def visualize_bbox(image,bb,scores,color):
     """
     NUM_BB=bb.shape[0]
     for i in range(NUM_BB):
-        score="{:.0%}".format(scores[i].numpy())
+        score="{:.0%}".format(scores[i])
         cv2.rectangle(image,pt1=(int(bb[i,0]),int(bb[i,1])),pt2=(int(bb[i,2]),int(bb[i,3])),color=color,thickness=1)
         cv2.putText(img=image, text=score, org=(int(bb[i,0]), int(bb[i,1]) - 5), fontFace=cv2.FONT_HERSHEY_COMPLEX, fontScale=0.3, color=(0, 255, 255), thickness=1)
     return image
