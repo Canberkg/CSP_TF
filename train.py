@@ -61,7 +61,8 @@ def csp_train(root_dir_train,root_dir_valid,_root_dir_train_jsons,root_dir_valid
     best = 9999
     patience = 30
     wait = 0
-
+    if os.path.exists(SAVE_DIR) != True:
+        os.makedirs(SAVE_DIR)
     checkpoint=tf.train.Checkpoint(optimizer=optimizer,model=csp_model)
     ckpt_manager=tf.train.CheckpointManager(checkpoint=checkpoint,directory=os.path.join(SAVE_DIR,CKPT_DIR),max_to_keep=5)
     if ckpt_manager.latest_checkpoint:
