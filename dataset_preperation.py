@@ -15,6 +15,9 @@ def Copy_and_Save (img_path,set_file):
         print("Images -")
         subfiles=os.listdir(img_path)
         for subf in subfiles:
+            set_path = os.path.join(set_file,subf)
+            if os.path.exists(set_path) != True:
+                os.makedirs(set_path)
             print(f"\n{subf} - ")
             original_dir=os.path.join(img_path,subf)
             city_files = os.listdir(original_dir)
@@ -24,7 +27,7 @@ def Copy_and_Save (img_path,set_file):
                 print(f"\n{city} :" )
                 for i in tqdm(range(len(img_names))):
                     image = cv2.imread(os.path.join(img_dir, img_names[i]))
-                    cv2.imwrite(os.path.join(os.path.join(set_file, subf),img_names[i]), image)
+                    cv2.imwrite(os.path.join(set_path,img_names[i]), image)
     else:
         raise ValueError("img_path and set_file must be a string !")
 
@@ -36,9 +39,11 @@ def Move_Json_Files(json_path,set_file):
         print(" Annotations : \n")
         subfiles = os.listdir(json_path)
         for subf in subfiles:
+            set_path = os.path.join(set_file, subf)
+            if os.path.exists(set_path) != True:
+                os.makedirs(set_path)
             print(f"\n{subf} - ")
             original_dir = os.path.join(json_path, subf)
-            save_dir = os.path.join(set_file, subf)
             city_files = os.listdir(original_dir)
             for city in city_files:
                 json_dir = os.path.join(original_dir, city)
@@ -46,7 +51,7 @@ def Move_Json_Files(json_path,set_file):
                 print(f"\n{city} :")
                 for i in tqdm(range(len(json_names))):
                     json_file = os.path.join(json_dir, json_names[i])
-                    shutil.copy2(src=json_file, dst=save_dir)
+                    shutil.copy2(src=json_file, dst=set_path)
     else:
         raise ValueError("img_path and set_file must be a string !")
 
@@ -72,10 +77,13 @@ if __name__ == '__main__':
 
     IMG_PATH = csp_cfg['IMG_PATH']
     JSON_PATH = csp_cfg['JSON_ANNOTATION']
+    MAIN_DIR = csp_cfg['MAIN_DIR']
     SET_IMG_PATH = csp_cfg['SET_IMG_PATH']
     SET_JSON_PATH = csp_cfg['SET_JSON_PATH']
     SUBSET = csp_cfg["SUBSET"]
 
+    SET_IMG_PATH = os.path.join(MAIN_DIR,SET_IMG_PATH)
+    SET_JSON_PATH = os.path.join(MAIN_DIR, SET_JSON_PATH)
     Copy_and_Save(img_path=IMG_PATH,set_file=SET_IMG_PATH)
     Move_Json_Files(json_path=JSON_PATH, set_file=SET_JSON_PATH)
     delete_invalid_images_labels(Img_Path=os.path.join(SET_IMG_PATH,"train"),Label_Path=os.path.join(SET_JSON_PATH,"train"),subset=SUBSET)
