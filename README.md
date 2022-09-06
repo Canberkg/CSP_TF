@@ -1,6 +1,6 @@
 # Center and Scale Prediction (CSP)
 
-This repository contains the re-implementation of CSP [1] built with Tensorflow 2+/Keras.
+This repository contains the re-implementation of Center and Scale Prediction (CSP) [1] built with Tensorflow 2+/Keras.
 
 ## Contents
 
